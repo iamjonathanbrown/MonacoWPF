@@ -1,0 +1,48 @@
+﻿<Window x:Class="WpfMonaco.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:l="clr-namespace:WpfMonaco"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="500" Width="1000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="+" Width="32" ToolTip="New File"
+                    Command="{x:Static l:MainWindow.NewFileCommand}" />
+            <TabControl Grid.Column="1" x:Name="tabControl" ItemsSource="{Binding ElementName=editor, Path=Files}"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" FontWeight="Bold" VerticalAlignment="Center" />
+                            <Button Content="x" Margin="8,0,0,0" Style="{StaticResource ToolBarButtonStyle}"
+                                    Command="{x:Static l:MainWindow.CloseFileCommand}" CommandParameter="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <DataTemplate />
+                </TabControl.ContentTemplate>
+            </TabControl>
+        </Grid>
+        <l:MonacoEditor Grid.Row="1" x:Name="editor" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <Button Content="Dark Theme" Command="{x:Static l:MainWindow.DarkThemeCommand}" Margin="4" />
+            <Button Content="Light Theme" Command="{x:Static l:MainWindow.LightThemeCommand}" Margin="4" />
+            <Button Content="Show Line Numbers" Command="{x:Static l:MainWindow.ShowLineNumbersCommand}" Margin="4" />
+            <Button Content="Hide Line Numbers" Command="{x:Static l:MainWindow.HideLineNumbersCommand}" Margin="4" />
+            <Button Content="Prepend Text" Command="{x:Static l:MainWindow.PrependTextCommand}" Margin="4" />
+            <Button Content="Append Text" Command="{x:Static l:MainWindow.AppendTextCommand}" Margin="4" />
+        </StackPanel>
+    </Grid>
+</Window>

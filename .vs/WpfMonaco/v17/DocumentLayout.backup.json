@@ -1,0 +1,123 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "F:\\source\\WpfMonaco\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|f:\\source\\wpfmonaco\\wpfmonaco\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|solutionrelative:wpfmonaco\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|f:\\source\\wpfmonaco\\wpfmonaco\\monacoeditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|solutionrelative:wpfmonaco\\monacoeditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|f:\\source\\wpfmonaco\\wpfmonaco\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|solutionrelative:wpfmonaco\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|f:\\source\\wpfmonaco\\wpfmonaco\\styles\\generic.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|solutionrelative:wpfmonaco\\styles\\generic.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|f:\\source\\wpfmonaco\\wpfmonaco\\monaco\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|solutionrelative:wpfmonaco\\monaco\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|f:\\source\\wpfmonaco\\wpfmonaco\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{875E9E96-FC56-4A80-AA8A-DBF81B15C357}|WpfMonaco\\WpfMonaco.csproj|solutionrelative:wpfmonaco\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "App.xaml.cs",
+              "DocumentMoniker": "F:\\source\\WpfMonaco\\WpfMonaco\\App.xaml.cs",
+              "RelativeDocumentMoniker": "WpfMonaco\\App.xaml.cs",
+              "ToolTip": "F:\\source\\WpfMonaco\\WpfMonaco\\App.xaml.cs",
+              "RelativeToolTip": "WpfMonaco\\App.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADMAAABQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-09T22:22:19.367Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "index.html",
+              "DocumentMoniker": "F:\\source\\WpfMonaco\\WpfMonaco\\Monaco\\index.html",
+              "RelativeDocumentMoniker": "WpfMonaco\\Monaco\\index.html",
+              "ToolTip": "F:\\source\\WpfMonaco\\WpfMonaco\\Monaco\\index.html",
+              "RelativeToolTip": "WpfMonaco\\Monaco\\index.html",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAwwBgAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2024-12-09T20:21:15.278Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Generic.xaml",
+              "DocumentMoniker": "F:\\source\\WpfMonaco\\WpfMonaco\\Styles\\Generic.xaml",
+              "RelativeDocumentMoniker": "WpfMonaco\\Styles\\Generic.xaml",
+              "ToolTip": "F:\\source\\WpfMonaco\\WpfMonaco\\Styles\\Generic.xaml",
+              "RelativeToolTip": "WpfMonaco\\Styles\\Generic.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2024-12-09T20:17:43.492Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MonacoEditor.cs",
+              "DocumentMoniker": "F:\\source\\WpfMonaco\\WpfMonaco\\MonacoEditor.cs",
+              "RelativeDocumentMoniker": "WpfMonaco\\MonacoEditor.cs",
+              "ToolTip": "F:\\source\\WpfMonaco\\WpfMonaco\\MonacoEditor.cs",
+              "RelativeToolTip": "WpfMonaco\\MonacoEditor.cs",
+              "ViewState": "AgIAANUAAAAAAAAAAAAWwN4AAABZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-09T19:17:55.975Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "F:\\source\\WpfMonaco\\WpfMonaco\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "WpfMonaco\\MainWindow.xaml",
+              "ToolTip": "F:\\source\\WpfMonaco\\WpfMonaco\\MainWindow.xaml",
+              "RelativeToolTip": "WpfMonaco\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2024-12-09T19:48:00.068Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "F:\\source\\WpfMonaco\\WpfMonaco\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "WpfMonaco\\MainWindow.xaml.cs",
+              "ToolTip": "F:\\source\\WpfMonaco\\WpfMonaco\\MainWindow.xaml.cs",
+              "RelativeToolTip": "WpfMonaco\\MainWindow.xaml.cs",
+              "ViewState": "AgIAABQAAAAAyszMzMzsvyEAAACKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-09T18:20:32.43Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
