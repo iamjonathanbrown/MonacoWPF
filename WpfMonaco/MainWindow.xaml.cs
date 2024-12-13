@@ -25,6 +25,7 @@ namespace WpfMonaco
         public static RoutedCommand LightThemeCommand { get; } = new RoutedCommand();
         public static RoutedCommand AppendTextCommand { get; } = new RoutedCommand();
         public static RoutedCommand PrependTextCommand { get; } = new RoutedCommand();
+        public static RoutedCommand AddDecorationsCommand { get; } = new RoutedCommand();
         public static RoutedCommand GetEditorConfigCommand { get; } = new RoutedCommand();
 
         public MainWindow()
@@ -36,15 +37,16 @@ namespace WpfMonaco
 
             CommandBindings.Add(new CommandBinding(NewFileCommand, async (sender, e) => this.tabControl.SelectedItem = await this.editor.CreateFile("Untitled", "// Hello, world", FileLanguage)));
             CommandBindings.Add(new CommandBinding(CloseFileCommand, (sender, e) => _ = this.editor.DeleteFile(e.Parameter as MonacoEditor.File)));
-            CommandBindings.Add(new CommandBinding(SetReadOnlyCommand, (sender, e) => _ = this.editor.Configuration.ReadOnly.Set(true)));
-            CommandBindings.Add(new CommandBinding(SetEditableCommand, (sender, e) => _ = this.editor.Configuration.ReadOnly.Set(false)));
-            CommandBindings.Add(new CommandBinding(ShowLineNumbersCommand, (sender, e) => _ = this.editor.Configuration.LineNumbers.Set(true)));
-            CommandBindings.Add(new CommandBinding(HideLineNumbersCommand, (sender, e) => _ = this.editor.Configuration.LineNumbers.Set(false)));
+            CommandBindings.Add(new CommandBinding(SetReadOnlyCommand, (sender, e) => _ = this.editor.Config.ReadOnly.Set(true)));
+            CommandBindings.Add(new CommandBinding(SetEditableCommand, (sender, e) => _ = this.editor.Config.ReadOnly.Set(false)));
+            CommandBindings.Add(new CommandBinding(ShowLineNumbersCommand, (sender, e) => _ = this.editor.Config.LineNumbers.Set(true)));
+            CommandBindings.Add(new CommandBinding(HideLineNumbersCommand, (sender, e) => _ = this.editor.Config.LineNumbers.Set(false)));
             CommandBindings.Add(new CommandBinding(DarkThemeCommand, (sender, e) => _ = this.editor.Theme.SetDark()));
             CommandBindings.Add(new CommandBinding(LightThemeCommand, (sender, e) => _ = this.editor.Theme.SetLight()));
             CommandBindings.Add(new CommandBinding(AppendTextCommand, (sender, e) => _ = this.editor.Text.Append(this.CurrentFile.Uri, "\n//Test")));
             CommandBindings.Add(new CommandBinding(PrependTextCommand, (sender, e) => _ = this.editor.Text.Prepend(this.CurrentFile.Uri, "//Test\n")));
-            CommandBindings.Add(new CommandBinding(GetEditorConfigCommand, async (sender, e) => MessageBox.Show(await this.editor.Configuration.Get())));
+            CommandBindings.Add(new CommandBinding(AddDecorationsCommand, (sender, e) => _ = UpdateDecorations(this.CurrentFile)));
+            CommandBindings.Add(new CommandBinding(GetEditorConfigCommand, async (sender, e) => MessageBox.Show((await this.editor.Config.Get()).Serialize())));
         }
 
         async void OnEditorReady(object sender, EventArgs e)
@@ -73,6 +75,9 @@ namespace WpfMonaco
             await this.editor.Font.Size.Set(16);
             await this.editor.Font.Family.Set("Segoe UI");
 
+            // Show the glyph margin
+            await this.editor.Config.Glyphs.ShowMargin(true);
+
             this.tabControl.SelectionChanged += OnSelectedFileChanged;
         }
 
@@ -84,7 +89,6 @@ namespace WpfMonaco
         async Task SelectFile(MonacoEditor.File file)
         {
             await this.editor.SelectFile(file);
-            await UpdateDecorations(file);
         }
 
         Task ClearFile()
@@ -94,20 +98,35 @@ namespace WpfMonaco
 
         async Task UpdateDecorations(MonacoEditor.File file)
         {
-            // Clear existing decorations
+            // Clear any existing decorations
             await this.editor.Decorations.ClearCollection(DecorationsCollectionName);
+
+            // Super lame, only very limited html is supported, and not even color names but only hex values
+            var hoverHtml = $"<span style=\"color:#ff0000;\">hello!<span>";
 
             // Add new decorations
             await this.editor.Decorations.CreateDecoration(DecorationsCollectionName, new MonacoEditor.Decoration()
             {
                 Range = new MonacoEditor.Range { StartLineNumber = 1, EndLineNumber = 1 },
-                Options = new MonacoEditor.DecorationOptions() { GlyphMarginClassName = StylesBreakpointClassName }
+                Options = new MonacoEditor.DecorationOptions()
+                {
+                    GlyphMarginClassName = StylesBreakpointClassName,
+                    GlyphMarginHoverMessage = new MonacoEditor.MarkdownString { SupportsHtml = true, IsTrusted = true, Value = hoverHtml },
+                    LineNumberClassName = StylesPerfClassName,
+                    LineNumberHoverMessage = new MonacoEditor.MarkdownString { SupportsHtml = true, IsTrusted = true, Value = hoverHtml },
+                }
             });
 
             await this.editor.Decorations.CreateDecoration(DecorationsCollectionName, new MonacoEditor.Decoration()
             {
-                Range = new MonacoEditor.Range { StartLineNumber = 3, EndLineNumber = 3 },
-                Options = new MonacoEditor.DecorationOptions() { GlyphMarginClassName = StylesPerfClassName }
+                Range = new MonacoEditor.Range { StartLineNumber = 2, StartColumn = 2, EndLineNumber = 2, EndColumn = 7 },
+                Options = new MonacoEditor.DecorationOptions() { ClassName = StylesBreakpointClassName }
+            });
+
+            await this.editor.Decorations.CreateDecoration(DecorationsCollectionName, new MonacoEditor.Decoration()
+            {
+                Range = new MonacoEditor.Range { StartLineNumber = 3, StartColumn = 1, EndLineNumber = 3, EndColumn = 5 },
+                Options = new MonacoEditor.DecorationOptions() { IsWholeLine = true, ClassName = StylesPerfClassName }
             });
         }
 

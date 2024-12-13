@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.VisualBasic;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 
@@ -29,7 +30,7 @@ namespace WpfMonaco
         public TextCommandManager Text { get; private set; }
         public FontCommandManager Font { get; private set; }
         public LocationCommandManager Location { get; private set; }
-        public ConfigurationCommandManager Configuration { get; private set; }
+        public ConfigurationCommandManager Config { get; private set; }
         public StyleCommandManager Styles { get; private set; }
         public DecorationCommandManager Decorations { get; private set; }
         public ThemeCommandManager Theme { get; private set; }
@@ -52,7 +53,7 @@ namespace WpfMonaco
             this.Text = new TextCommandManager(this.webView);
             this.Font = new FontCommandManager(this.webView);
             this.Location = new LocationCommandManager(this.webView);
-            this.Configuration = new ConfigurationCommandManager(this.webView);
+            this.Config = new ConfigurationCommandManager(this.webView);
             this.Styles = new StyleCommandManager(this.webView);
             this.Decorations = new DecorationCommandManager(this.webView);
             this.Theme = new ThemeCommandManager(this.webView);
@@ -91,7 +92,7 @@ namespace WpfMonaco
         {
             this.webView?.CoreWebView2.ClearVirtualHostNameToFolderMapping(EditorDomain);
 
-            foreach(var file in this.Files)
+            foreach (var file in this.Files.ToList())
             {
                 await DeleteFile(file);
             }
@@ -250,18 +251,22 @@ namespace WpfMonaco
         {
             public ReadOnlyCommandManager ReadOnly { get; private set; }
             public LineNumbersCommandManager LineNumbers { get; private set; }
+            public GlyphsCommandManager Glyphs { get; private set; }
 
-            public Task<string> Get() => ExecuteScript<string>($"{EditorLocalName}.getConfiguration()");
+            public Task<Configuration> Get() => ExecuteScript<Configuration>($"{EditorLocalName}.getRawOptions()");
 
             public ConfigurationCommandManager(WebView2 webView) : base(webView)
             {
                 this.ReadOnly = new ReadOnlyCommandManager(webView);
                 this.LineNumbers = new LineNumbersCommandManager(webView);
+                this.Glyphs = new GlyphsCommandManager(webView);
             }
 
             public class ReadOnlyCommandManager : CommandManager
             {
-                public Task Set(bool value) => ExecuteScript($"{EditorLocalName}.updateOptions({{readOnly: {value} }})");
+                // Would be nice to change the editor style to indicate it is readonly
+                // https://stackoverflow.com/questions/78282605/how-to-specify-the-background-color-for-when-monaco-is-read-only
+                public Task Set(bool value) => ExecuteScript($"{EditorLocalName}.updateOptions({{readOnly: {value.Serialize()} }})");
 
                 public ReadOnlyCommandManager(WebView2 webView) : base(webView)
                 { }
@@ -305,11 +310,19 @@ namespace WpfMonaco
                     _ => false,
                 };
             }
+
+            public class GlyphsCommandManager : CommandManager
+            {
+                public Task ShowMargin(bool value) => ExecuteScript($"{EditorLocalName}.updateOptions({{ glyphMargin: {value.Serialize()} }})");
+
+                public GlyphsCommandManager(WebView2 webView) : base(webView)
+                { }
+            }
         }
 
         public class StyleCommandManager : CommandManager
         {
-            public Task CreateCollection(string collectionName) => ExecuteScript($"const {collectionName} = new CSSStyleSheet(); document.adoptedStyleSheets = [...document.adoptedStyleSheets, name];");
+            public Task CreateCollection(string collectionName) => ExecuteScript($"const {collectionName} = new CSSStyleSheet(); document.adoptedStyleSheets.push({collectionName});");
             public Task DeleteCollection(string collectionName) => ExecuteScript($"document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== {collectionName})");
 
             public Task CreateRule(string collectionName, string className, string property, string value) => ExecuteScript($"{collectionName}.insertRule(\".{className} {{ {property}: {value}; }}\")");
@@ -378,8 +391,38 @@ namespace WpfMonaco
         public class DecorationOptions
         {
             public bool IsWholeLine { get; set; }
+            public DecoratorStickiness Stickiness { get; set; } = DecoratorStickiness.NeverGrowsWhenTypingAtEdges;
+
             public string ClassName { get; set; }
+            public string InlineClassName { get; set; }
+
+            public string LineNumberClassName { get; set; }
+            public MarkdownString LineNumberHoverMessage { get; set; }
+
             public string GlyphMarginClassName { get; set; }
+            public MarkdownString GlyphMarginHoverMessage { get; set; }
+        }
+
+        public enum DecoratorStickiness
+        {
+            AlwaysGrowsWhenTypingAtEdges,
+            NeverGrowsWhenTypingAtEdges,
+            GrowsOnlyWhenTypingBefore,
+            GrowsOnlyWhenTypingAfter,
+        }
+
+        public class MarkdownString
+        {
+            public bool SupportsHtml { get; set; }
+            public bool IsTrusted { get; set; } // Appears to be required for rendering HTML
+            public string Value { get; set; }
+        }
+
+        public class Configuration
+        {
+            public string FontFamily { get; set; }
+            public int FontSize { get; set; }
+            public bool ReadOnly { get; set; }
         }
     }
 }

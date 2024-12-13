@@ -45,6 +45,7 @@
             <Button Content="Hide Line Numbers" Command="{x:Static l:MainWindow.HideLineNumbersCommand}" Margin="4" />
             <Button Content="Prepend Text" Command="{x:Static l:MainWindow.PrependTextCommand}" Margin="4" />
             <Button Content="Append Text" Command="{x:Static l:MainWindow.AppendTextCommand}" Margin="4" />
+            <Button Content="Add Decorations" Command="{x:Static l:MainWindow.AddDecorationsCommand}" Margin="4" />
             <Button Content="Get Editor Config" Command="{x:Static l:MainWindow.GetEditorConfigCommand}" Margin="4" />
         </StackPanel>
     </Grid>
