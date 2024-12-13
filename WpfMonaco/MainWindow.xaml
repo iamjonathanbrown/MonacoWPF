@@ -39,10 +39,13 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal">
             <Button Content="Dark Theme" Command="{x:Static l:MainWindow.DarkThemeCommand}" Margin="4" />
             <Button Content="Light Theme" Command="{x:Static l:MainWindow.LightThemeCommand}" Margin="4" />
+            <Button Content="Set ReadOnly" Command="{x:Static l:MainWindow.SetReadOnlyCommand}" Margin="4" />
+            <Button Content="Set Editable" Command="{x:Static l:MainWindow.SetEditableCommand}" Margin="4" />
             <Button Content="Show Line Numbers" Command="{x:Static l:MainWindow.ShowLineNumbersCommand}" Margin="4" />
             <Button Content="Hide Line Numbers" Command="{x:Static l:MainWindow.HideLineNumbersCommand}" Margin="4" />
             <Button Content="Prepend Text" Command="{x:Static l:MainWindow.PrependTextCommand}" Margin="4" />
             <Button Content="Append Text" Command="{x:Static l:MainWindow.AppendTextCommand}" Margin="4" />
+            <Button Content="Get Editor Config" Command="{x:Static l:MainWindow.GetEditorConfigCommand}" Margin="4" />
         </StackPanel>
     </Grid>
 </Window>

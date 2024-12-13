@@ -3,13 +3,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-
+using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 
 namespace WpfMonaco
 {
     public class MonacoEditor : Control
     {
+        const int DefaultLineNumber = 1;
+        const int DefaultColumnNumber = 1;
+
         const string EditorGlobalName = "monaco.editor";
         const string EditorLocalName = "editor"; // Must match the JS variable name in the HTML
         const string EditorDomain = "test.editor";
@@ -25,11 +28,15 @@ namespace WpfMonaco
         // External commands
         public TextCommandManager Text { get; private set; }
         public FontCommandManager Font { get; private set; }
-        public LineNumbersCommandManager LineNumbers { get; private set; }
+        public LocationCommandManager Location { get; private set; }
         public ConfigurationCommandManager Configuration { get; private set; }
+        public StyleCommandManager Styles { get; private set; }
+        public DecorationCommandManager Decorations { get; private set; }
         public ThemeCommandManager Theme { get; private set; }
 
         public ObservableCollection<File> Files { get; } = new ObservableCollection<File>();
+
+        public EventHandler Ready;
 
         static MonacoEditor()
         {
@@ -44,17 +51,20 @@ namespace WpfMonaco
             this.Models = new ModelCommandManager(this.webView);
             this.Text = new TextCommandManager(this.webView);
             this.Font = new FontCommandManager(this.webView);
-            this.LineNumbers = new LineNumbersCommandManager(this.webView);
+            this.Location = new LocationCommandManager(this.webView);
             this.Configuration = new ConfigurationCommandManager(this.webView);
+            this.Styles = new StyleCommandManager(this.webView);
+            this.Decorations = new DecorationCommandManager(this.webView);
             this.Theme = new ThemeCommandManager(this.webView);
 
             // Ensure the WebView is ready before we start using it
             await this.webView.EnsureCoreWebView2Async();
 
-            // Register to retrieve console output
+            // Open the dev tools for debugging
             this.webView.CoreWebView2.OpenDevToolsWindow();
 
             /* Not getting all log messages, just the first one for some reason. But having the console open helps
+            // Register to retrieve console output
             var res = await this.webView.CoreWebView2.CallDevToolsProtocolMethodAsync("Log.enable", "{}");
             var logEventReceiver = webView.CoreWebView2.GetDevToolsProtocolEventReceiver("Log.entryAdded");
 
@@ -67,25 +77,44 @@ namespace WpfMonaco
             /*
             // Map the folder to a domain so that things like web workers can work
             this.webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
-                    editorDomain, editorBaseDir, CoreWebView2HostResourceAccessKind.Allow);
+                    EditorDomain, EditorBaseDir, CoreWebView2HostResourceAccessKind.Allow);
 
-            // Set the initial locations
-            this.webView.Source = new Uri(new Uri(editorBaseUrl), indexFileName);
+            // Set the initial location
+            this.webView.Source = new Uri(new Uri(EditorBaseUrl), IndexFileName);
             */
 
+            this.webView.CoreWebView2.DOMContentLoaded += OnDomLoaded;
             this.webView.Source = new Uri(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EditorBaseDir, IndexFileName));
+        }
+
+        public async Task Close()
+        {
+            this.webView?.CoreWebView2.ClearVirtualHostNameToFolderMapping(EditorDomain);
+
+            foreach(var file in this.Files)
+            {
+                await DeleteFile(file);
+            }
+
+            await this.Styles.Clear();
+        }
+
+        void OnDomLoaded(object sender, CoreWebView2DOMContentLoadedEventArgs e)
+        {
+            this.webView.CoreWebView2.DOMContentLoaded -= OnDomLoaded;
+            this.Ready?.Invoke(this, EventArgs.Empty);
         }
 
         public async Task<File> CreateFile(string name, string content, string language = "")
         {
             var uri = await this.Models.Create(content, language);
-            var file = new File(name, content, language, uri);
+            var file = new File(name, uri);
             this.Files.Add(file);
 
             return file;
         }
 
-        public async Task CloseFile(File file)
+        public async Task DeleteFile(File file)
         {
             await this.Models.Dispose(file.Uri);
             this.Files.Remove(file);
@@ -147,7 +176,6 @@ namespace WpfMonaco
 
             public class FontSizeCommandManager : CommandManager
             {
-                public Task<string> Get() => ExecuteScript<string>($"{EditorLocalName}.getConfiguration().fontSize");
                 public Task Set(int value) => ExecuteScript($"{EditorLocalName}.updateOptions({{ fontSize: {value} }})");
 
                 public FontSizeCommandManager(WebView2 webView) : base(webView)
@@ -156,7 +184,6 @@ namespace WpfMonaco
 
             public class FontFamilyCommandManager : CommandManager
             {
-                public Task<int> Get() => ExecuteScript<int>($"{EditorLocalName}.getConfiguration().fontFamily");
                 public Task Set(string value) => ExecuteScript($"{EditorLocalName}.updateOptions({{ fontFamily: {value.Serialize()} }})");
 
                 public FontFamilyCommandManager(WebView2 webView) : base(webView)
@@ -164,44 +191,14 @@ namespace WpfMonaco
             }
         }
 
-        public class LineNumbersCommandManager : CommandManager
+        public class LocationCommandManager : CommandManager
         {
-            public async Task<bool> Get() => ToBool(ToState(await ExecuteScript<string>($"{EditorLocalName}.getConfiguration().lineNumbers")));
-            public Task Set(bool value) => ExecuteScript($"{EditorLocalName}.updateOptions({{ lineNumbers: {ToState(value).ToString().ToLower().Serialize()} }})");
+            public Task GoToLine(int line) => ExecuteScript($"{EditorLocalName}.revealLineInNearTop({line})");
+            public Task GoToPosition(Position position) => ExecuteScript($"{EditorLocalName}.revealPositionNearTop({position.Serialize()})");
+            public Task GoToRange(Range range) => ExecuteScript($"{EditorLocalName}.revealRangeNearTop({range.Serialize()})");
 
-            public LineNumbersCommandManager(WebView2 webView) : base(webView)
+            public LocationCommandManager(WebView2 webView) : base(webView)
             { }
-
-            public enum OnOffState
-            {
-                On,
-                Off,
-            }
-
-            OnOffState ToState(string value)
-            {
-                if (Enum.TryParse(value, true, out OnOffState result) &&
-                    Enum.IsDefined(typeof(OnOffState), result))
-                {
-                    return result;
-                }
-
-                Debug.Assert(false, $"Invalid {nameof(OnOffState)}: {value}");
-                return OnOffState.Off;
-            }
-
-            OnOffState ToState(bool value) => value switch
-            {
-                true => OnOffState.On,
-                false => OnOffState.Off,
-            };
-
-            bool ToBool(OnOffState state) => state switch
-            {
-                OnOffState.On => true,
-                OnOffState.Off => false,
-                _ => false,
-            };
         }
 
         public class ThemeCommandManager : CommandManager
@@ -244,49 +241,121 @@ namespace WpfMonaco
             public Task Dispose(string uri) => ExecuteScript($"{GetModel(uri)}.dispose()");
             public Task SetActive(string uri) => ExecuteScript($"{EditorLocalName}.setModel({GetModel(uri)})");
             public Task SetNull() => ExecuteScript($"{EditorLocalName}.setModel(null)");
-            
+
             public ModelCommandManager(WebView2 webView) : base(webView)
             { }
         }
 
         public class ConfigurationCommandManager : CommandManager
         {
+            public ReadOnlyCommandManager ReadOnly { get; private set; }
+            public LineNumbersCommandManager LineNumbers { get; private set; }
+
             public Task<string> Get() => ExecuteScript<string>($"{EditorLocalName}.getConfiguration()");
-            public Task Set(string value) => ExecuteScript($"{EditorLocalName}.updateOptions({value.Serialize()})");
-            public ConfigurationCommandManager(WebView2 webView ) : base(webView)
+
+            public ConfigurationCommandManager(WebView2 webView) : base(webView)
+            {
+                this.ReadOnly = new ReadOnlyCommandManager(webView);
+                this.LineNumbers = new LineNumbersCommandManager(webView);
+            }
+
+            public class ReadOnlyCommandManager : CommandManager
+            {
+                public Task Set(bool value) => ExecuteScript($"{EditorLocalName}.updateOptions({{readOnly: {value} }})");
+
+                public ReadOnlyCommandManager(WebView2 webView) : base(webView)
+                { }
+            }
+
+            public class LineNumbersCommandManager : CommandManager
+            {
+                public Task Set(bool value) => ExecuteScript($"{EditorLocalName}.updateOptions({{ lineNumbers: {ToState(value).ToString().ToLower().Serialize()} }})");
+
+                public LineNumbersCommandManager(WebView2 webView) : base(webView)
+                { }
+
+                public enum OnOffState
+                {
+                    On,
+                    Off,
+                }
+
+                OnOffState ToState(string value)
+                {
+                    if (Enum.TryParse(value, true, out OnOffState result) &&
+                        Enum.IsDefined(typeof(OnOffState), result))
+                    {
+                        return result;
+                    }
+
+                    Debug.Assert(false, $"Invalid {nameof(OnOffState)}: {value}");
+                    return OnOffState.Off;
+                }
+
+                OnOffState ToState(bool value) => value switch
+                {
+                    true => OnOffState.On,
+                    false => OnOffState.Off,
+                };
+
+                bool ToBool(OnOffState state) => state switch
+                {
+                    OnOffState.On => true,
+                    OnOffState.Off => false,
+                    _ => false,
+                };
+            }
+        }
+
+        public class StyleCommandManager : CommandManager
+        {
+            public Task CreateCollection(string collectionName) => ExecuteScript($"const {collectionName} = new CSSStyleSheet(); document.adoptedStyleSheets = [...document.adoptedStyleSheets, name];");
+            public Task DeleteCollection(string collectionName) => ExecuteScript($"document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== {collectionName})");
+
+            public Task CreateRule(string collectionName, string className, string property, string value) => ExecuteScript($"{collectionName}.insertRule(\".{className} {{ {property}: {value}; }}\")");
+            public Task DeleteRule(string collectionName, int index) => ExecuteScript($"{collectionName}.deleteRule({index})");
+
+            public Task Clear() => ExecuteScript("document.adoptedStyleSheets = []");
+
+            public StyleCommandManager(WebView2 webView) : base(webView)
+            { }
+        }
+
+        public class DecorationCommandManager : CommandManager
+        {
+            public Task CreateCollection(string collectionName) => ExecuteScript($"const {collectionName} = {EditorLocalName}.createDecorationsCollection()");
+            public Task ClearCollection(string collectionName) => ExecuteScript($"{collectionName}.clear()");
+
+            public Task CreateDecoration(string collectionName, Decoration decoration) => ExecuteScript($"{collectionName}.append([{decoration.Serialize()}])");
+
+            public DecorationCommandManager(WebView2 webView) : base(webView)
             { }
         }
 
         public class File
         {
             public string Name { get; }
-            public string Content { get; }
-            public string Language { get; }
             public string Uri { get; private set; }
 
-            public File(string name, string content, string language, string uri)
+            public File(string name, string uri)
             {
                 this.Name = name;
-                this.Content = content;
-                this.Language = language;
                 this.Uri = uri;
             }
         }
 
         public class Position
         {
-            public int LineNumber { get; set; }
-            public int Column { get; set; }
+            public int LineNumber { get; set; } = DefaultLineNumber;
+            public int Column { get; set; } = DefaultColumnNumber;
         }
 
         public class Range
         {
-            const int Default = 1;
-
-            public int StartLineNumber { get; set; } = Default;
-            public int StartColumn { get; set; } = Default;
-            public int EndLineNumber { get; set; } = Default;
-            public int EndColumn { get; set; } = Default;
+            public int StartLineNumber { get; set; } = DefaultLineNumber;
+            public int StartColumn { get; set; } = DefaultColumnNumber;
+            public int EndLineNumber { get; set; } = DefaultLineNumber;
+            public int EndColumn { get; set; } = DefaultColumnNumber;
 
             public Range()
             { }
@@ -298,6 +367,19 @@ namespace WpfMonaco
                 this.EndLineNumber = position.LineNumber;
                 this.EndColumn = position.Column;
             }
+        }
+
+        public class Decoration
+        {
+            public Range Range { get; set; }
+            public DecorationOptions Options { get; set; }
+        }
+
+        public class DecorationOptions
+        {
+            public bool IsWholeLine { get; set; }
+            public string ClassName { get; set; }
+            public string GlyphMarginClassName { get; set; }
         }
     }
 }
