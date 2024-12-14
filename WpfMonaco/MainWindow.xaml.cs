@@ -27,6 +27,7 @@ namespace WpfMonaco
         public static RoutedCommand PrependTextCommand { get; } = new RoutedCommand();
         public static RoutedCommand AddDecorationsCommand { get; } = new RoutedCommand();
         public static RoutedCommand GetEditorConfigCommand { get; } = new RoutedCommand();
+        public static RoutedCommand RunScriptCommand { get; } = new RoutedCommand();
 
         public MainWindow()
         {
@@ -47,6 +48,7 @@ namespace WpfMonaco
             CommandBindings.Add(new CommandBinding(PrependTextCommand, (sender, e) => _ = this.editor.Text.Prepend(this.CurrentFile.Uri, "//Test\n")));
             CommandBindings.Add(new CommandBinding(AddDecorationsCommand, (sender, e) => _ = UpdateDecorations(this.CurrentFile)));
             CommandBindings.Add(new CommandBinding(GetEditorConfigCommand, async (sender, e) => MessageBox.Show((await this.editor.Config.Get()).Serialize())));
+            CommandBindings.Add(new CommandBinding(RunScriptCommand, (sender, e) => this.editor.Script.Execute(this.textBox.Text)));
         }
 
         async void OnEditorReady(object sender, EventArgs e)
@@ -75,9 +77,6 @@ namespace WpfMonaco
             await this.editor.Font.Size.Set(16);
             await this.editor.Font.Family.Set("Segoe UI");
 
-            // Show the glyph margin
-            await this.editor.Config.Glyphs.ShowMargin(true);
-
             this.tabControl.SelectionChanged += OnSelectedFileChanged;
         }
 
@@ -98,6 +97,9 @@ namespace WpfMonaco
 
         async Task UpdateDecorations(MonacoEditor.File file)
         {
+            // Show the glyph margin if not already visible.
+            await this.editor.Config.Glyphs.ShowMargin(true);
+
             // Clear any existing decorations
             await this.editor.Decorations.ClearCollection(DecorationsCollectionName);
 

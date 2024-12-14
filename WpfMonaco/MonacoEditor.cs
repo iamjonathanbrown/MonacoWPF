@@ -34,6 +34,7 @@ namespace WpfMonaco
         public StyleCommandManager Styles { get; private set; }
         public DecorationCommandManager Decorations { get; private set; }
         public ThemeCommandManager Theme { get; private set; }
+        public ScriptCommandManager Script { get; private set; }
 
         public ObservableCollection<File> Files { get; } = new ObservableCollection<File>();
 
@@ -57,6 +58,7 @@ namespace WpfMonaco
             this.Styles = new StyleCommandManager(this.webView);
             this.Decorations = new DecorationCommandManager(this.webView);
             this.Theme = new ThemeCommandManager(this.webView);
+            this.Script = new ScriptCommandManager(this.webView);
 
             // Ensure the WebView is ready before we start using it
             await this.webView.EnsureCoreWebView2Async();
@@ -254,6 +256,7 @@ namespace WpfMonaco
             public GlyphsCommandManager Glyphs { get; private set; }
 
             public Task<Configuration> Get() => ExecuteScript<Configuration>($"{EditorLocalName}.getRawOptions()");
+            public Task Set(Configuration config) => ExecuteScript($"{EditorLocalName}.updateOptions({config.Serialize()})");
 
             public ConfigurationCommandManager(WebView2 webView) : base(webView)
             {
@@ -345,6 +348,14 @@ namespace WpfMonaco
             { }
         }
 
+        public class ScriptCommandManager : CommandManager
+        {
+            public Task Execute(string script) => ExecuteScript(script);
+
+            public ScriptCommandManager(WebView2 webView) : base(webView)
+            { }
+        }
+
         public class File
         {
             public string Name { get; }
@@ -423,6 +434,7 @@ namespace WpfMonaco
             public string FontFamily { get; set; }
             public int FontSize { get; set; }
             public bool ReadOnly { get; set; }
+            public bool GlyphMargin { get; set; }
         }
     }
 }

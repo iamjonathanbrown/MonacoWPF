@@ -11,6 +11,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
@@ -48,5 +49,13 @@
             <Button Content="Add Decorations" Command="{x:Static l:MainWindow.AddDecorationsCommand}" Margin="4" />
             <Button Content="Get Editor Config" Command="{x:Static l:MainWindow.GetEditorConfigCommand}" Margin="4" />
         </StackPanel>
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Run Script" Command="{x:Static l:MainWindow.RunScriptCommand}" Margin="4" />
+            <TextBox Grid.Column="1" x:Name="textBox" MaxLines="1" Text="editor.updateOptions({ glyphMargin: true });" Margin="4" HorizontalAlignment="Stretch" />
+        </Grid>
     </Grid>
 </Window>
