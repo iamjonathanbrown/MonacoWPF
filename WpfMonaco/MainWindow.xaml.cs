@@ -36,6 +36,9 @@ namespace WpfMonaco
             this.Closed += OnClose;
             this.editor.Ready += OnEditorReady;
 
+            // For debugging
+            this.textBox.Text = "editor.updateOptions({ glyphMargin: true });";
+
             CommandBindings.Add(new CommandBinding(NewFileCommand, async (sender, e) => this.tabControl.SelectedItem = await this.editor.CreateFile("Untitled", "// Hello, world", FileLanguage)));
             CommandBindings.Add(new CommandBinding(CloseFileCommand, (sender, e) => _ = this.editor.DeleteFile(e.Parameter as MonacoEditor.File)));
             CommandBindings.Add(new CommandBinding(SetReadOnlyCommand, (sender, e) => _ = this.editor.Config.ReadOnly.Set(true)));
