@@ -99,7 +99,7 @@ namespace WpfMonaco
                 await DeleteFile(file);
             }
 
-            await this.Styles.Clear();
+            await this.Styles.DeleteAllCollections();
         }
 
         void OnDomLoaded(object sender, CoreWebView2DOMContentLoadedEventArgs e)
@@ -326,12 +326,13 @@ namespace WpfMonaco
         public class StyleCommandManager : CommandManager
         {
             public Task CreateCollection(string collectionName) => ExecuteScript($"const {collectionName} = new CSSStyleSheet(); document.adoptedStyleSheets.push({collectionName});");
+            public Task ClearCollection(string collectionName) => ExecuteScript($"{collectionName}.replace('')");
             public Task DeleteCollection(string collectionName) => ExecuteScript($"document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== {collectionName})");
 
             public Task CreateRule(string collectionName, string className, string property, string value) => ExecuteScript($"{collectionName}.insertRule(\".{className} {{ {property}: {value}; }}\")");
             public Task DeleteRule(string collectionName, int index) => ExecuteScript($"{collectionName}.deleteRule({index})");
 
-            public Task Clear() => ExecuteScript("document.adoptedStyleSheets = []");
+            public Task DeleteAllCollections() => ExecuteScript("document.adoptedStyleSheets = []");
 
             public StyleCommandManager(WebView2 webView) : base(webView)
             { }

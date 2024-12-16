@@ -1,5 +1,5 @@
-﻿
-using System.Text.Json;
+﻿using System.Text.Json;
+using System.Windows.Media;
 
 namespace WpfMonaco
 {
@@ -18,6 +18,14 @@ namespace WpfMonaco
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
+        }
+    }
+
+    static class ColorExtensions
+    {
+        public static string ToHex(this Color color)
+        {
+            return string.Format("#{0:X2}{1:X2}{2:X2}", color.R, color.G, color.B);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace WpfMonaco
 {
@@ -12,6 +13,9 @@ namespace WpfMonaco
         const string StylesCollectionName = "styles";
         const string StylesBreakpointClassName = "glyph-breakpoint";
         const string StylesPerfClassName = "glyph-perf";
+
+        SolidColorBrush breakpointBrush = new SolidColorBrush(Colors.Red);
+        SolidColorBrush perfBrush = new SolidColorBrush(Colors.Yellow);
 
         MonacoEditor.File CurrentFile => this.tabControl.SelectedItem as MonacoEditor.File;
 
@@ -26,6 +30,7 @@ namespace WpfMonaco
         public static RoutedCommand AppendTextCommand { get; } = new RoutedCommand();
         public static RoutedCommand PrependTextCommand { get; } = new RoutedCommand();
         public static RoutedCommand AddDecorationsCommand { get; } = new RoutedCommand();
+        public static RoutedCommand ToggleStylesCommand { get; } = new RoutedCommand();
         public static RoutedCommand GetEditorConfigCommand { get; } = new RoutedCommand();
         public static RoutedCommand RunScriptCommand { get; } = new RoutedCommand();
 
@@ -50,6 +55,7 @@ namespace WpfMonaco
             CommandBindings.Add(new CommandBinding(AppendTextCommand, (sender, e) => _ = this.editor.Text.Append(this.CurrentFile.Uri, "\n//Test")));
             CommandBindings.Add(new CommandBinding(PrependTextCommand, (sender, e) => _ = this.editor.Text.Prepend(this.CurrentFile.Uri, "//Test\n")));
             CommandBindings.Add(new CommandBinding(AddDecorationsCommand, (sender, e) => _ = UpdateDecorations(this.CurrentFile)));
+            CommandBindings.Add(new CommandBinding(ToggleStylesCommand, (sender, e) => _ = ToggleStyles()));
             CommandBindings.Add(new CommandBinding(GetEditorConfigCommand, async (sender, e) => MessageBox.Show((await this.editor.Config.Get()).Serialize())));
             CommandBindings.Add(new CommandBinding(RunScriptCommand, (sender, e) => this.editor.Script.Execute(this.textBox.Text)));
         }
@@ -64,8 +70,7 @@ namespace WpfMonaco
 
             // Create the custom styles
             await this.editor.Styles.CreateCollection(StylesCollectionName);
-            await this.editor.Styles.CreateRule(StylesCollectionName, StylesBreakpointClassName, "background-color", "red");
-            await this.editor.Styles.CreateRule(StylesCollectionName, StylesPerfClassName, "background-color", "yellow");
+            await UpdateStyles();
 
             // Add the files
             await this.editor.CreateFile("main.js", "function main() {\n\talert('main!');\n}\n", FileLanguage);
@@ -98,9 +103,27 @@ namespace WpfMonaco
             return this.editor.ClearFile();
         }
 
+        Task ToggleStyles()
+        {
+            // Pretend the theme binding changed and the styles need to be updated
+            this.breakpointBrush.Color = (this.breakpointBrush.Color == Colors.Red) ? Colors.Blue : Colors.Red;
+            this.perfBrush.Color = (this.perfBrush.Color == Colors.Yellow) ? Colors.Green : Colors.Yellow;
+            return UpdateStyles();
+        }
+
+        async Task UpdateStyles()
+        {
+            // Clear any existing styles
+            await this.editor.Styles.ClearCollection(StylesCollectionName);
+
+            // Add styles with their current brush values
+            await this.editor.Styles.CreateRule(StylesCollectionName, StylesBreakpointClassName, "background-color", this.breakpointBrush.Color.ToHex());
+            await this.editor.Styles.CreateRule(StylesCollectionName, StylesPerfClassName, "background-color", this.perfBrush.Color.ToHex());
+        }
+
         async Task UpdateDecorations(MonacoEditor.File file)
         {
-            // Show the glyph margin if not already visible.
+            // Show the glyph margin if not already visible
             await this.editor.Config.Glyphs.ShowMargin(true);
 
             // Clear any existing decorations
