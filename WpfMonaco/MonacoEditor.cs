@@ -22,9 +22,11 @@ namespace WpfMonaco
         const string IndexFileName = "index.html";
 
         WebView2 webView;
+        File currentFile;
 
         // Internal commands
         ModelCommandManager Models { get; set; }
+        StateCommandMnager State { get; set; }
 
         // External commands
         public TextCommandManager Text { get; private set; }
@@ -51,6 +53,7 @@ namespace WpfMonaco
 
             // Create the command executors
             this.Models = new ModelCommandManager(this.webView);
+            this.State = new StateCommandMnager(this.webView);
             this.Text = new TextCommandManager(this.webView);
             this.Font = new FontCommandManager(this.webView);
             this.Location = new LocationCommandManager(this.webView);
@@ -125,12 +128,29 @@ namespace WpfMonaco
 
         public async Task SelectFile(File file)
         {
-            await this.Models.SetActive(file?.Uri ?? null);
+            // Save the current file state
+            if (this.currentFile != null)
+            {
+                this.currentFile.SetState(await this.State.Get());
+            }
+
+            // Select the new file and set its state
+            if (file?.Uri != null)
+            {
+                await this.Models.SetActive(file.Uri);
+                await this.State.Set(file.State);
+                this.currentFile = file;
+            }
+            else
+            {
+                await ClearFile();
+            }
         }
 
         public async Task ClearFile()
         {
             await this.Models.SetNull();
+            this.currentFile = null;
         }
 
         public abstract class CommandManager
@@ -249,6 +269,15 @@ namespace WpfMonaco
             { }
         }
 
+        public class StateCommandMnager : CommandManager
+        {
+            public Task<object> Get() => ExecuteScript<object>($"{EditorLocalName}.saveViewState()");
+            public Task Set(object state) => ExecuteScript($"{EditorLocalName}.restoreViewState({state.Serialize()})");
+
+            public StateCommandMnager(WebView2 webView) : base(webView)
+            { }
+        }
+
         public class ConfigurationCommandManager : CommandManager
         {
             public ReadOnlyCommandManager ReadOnly { get; private set; }
@@ -361,11 +390,17 @@ namespace WpfMonaco
         {
             public string Name { get; }
             public string Uri { get; private set; }
+            public object State { get; private set; }
 
             public File(string name, string uri)
             {
                 this.Name = name;
                 this.Uri = uri;
+            }
+
+            public void SetState(object state)
+            {
+                this.State = state;
             }
         }
 
